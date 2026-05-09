@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>V24 Quantum AI Stock Platform</title>
+<title>V24 Topics</title>
 <style>
 :root{--cyan:#18d5ff;--blue:#2563eb;--purple:#9333ea;--green:#22c55e;--red:#fb3b5f;--yellow:#facc15;--text:#f8fafc}
 *{box-sizing:border-box}
@@ -22,33 +22,18 @@ th,td{padding:10px 8px;border-bottom:1px solid rgba(59,130,246,.18);text-align:l
 .toast{position:fixed;right:24px;bottom:24px;background:linear-gradient(135deg,#0284c7,#9333ea);padding:14px 18px;border-radius:14px;box-shadow:0 0 30px rgba(56,189,248,.35);font-weight:900;opacity:0;transform:translateY(20px);transition:.25s;z-index:10}.toast.show{opacity:1;transform:translateY(0)}
 @media(max-width:900px){.app{padding:14px 10px}.topbar{grid-template-columns:1fr}.title{font-size:28px}.subtitle{letter-spacing:1px;font-size:12px}.clock,.date{text-align:left}th,td{font-size:12px;padding:8px}.panel{padding:12px}}
 
-.home-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
-.home-card{min-height:250px;display:flex;flex-direction:column;justify-content:space-between}
-.home-card h2{margin:0;color:#38bdf8;font-size:26px}
-.home-card p{color:#94a3b8;line-height:1.7}
-.search-block{margin-top:18px;display:grid;grid-template-columns:1fr 180px;gap:12px}
-@media(max-width:900px){.home-grid,.search-block{grid-template-columns:1fr}}
+.topic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.topic-card{border:1px solid rgba(59,130,246,.38);border-radius:16px;padding:14px;background:rgba(2,6,23,.45);cursor:pointer;transition:.15s}
+.topic-card:hover,.topic-card.active{background:linear-gradient(135deg,rgba(14,165,233,.22),rgba(147,51,234,.24));border-color:rgba(125,211,252,.8)}
+.topic-title{font-size:18px;font-weight:950}.topic-sub{font-size:12px;color:#94a3b8;margin-top:6px}.topic-score{margin-top:10px;font-size:22px;font-weight:950;color:#22d3ee}
+@media(max-width:900px){.topic-grid{grid-template-columns:1fr}}
 </style></head>
-<body>
-<div class="app">
-  <div class="topbar"><div><div class="title">V24 Quantum Platform</div><div class="subtitle">AI推薦｜九大題材｜技術分析，各自獨立不打架</div></div><div><div class="clock" id="clock">--:--:--</div><div class="date">UTC+8｜GITHUB PAGES</div></div></div>
-
-  <div class="home-grid">
-    <div class="panel home-card"><div><h2>⚡ AI推薦雷達</h2><p>復刻 V13.6 的選股靈魂。全市場掃描、可調掃描檔數、Top10 推薦、AI分數、推薦原因。</p></div><a class="btn" href="radar.html">進入 AI 推薦</a></div>
-    <div class="panel home-card"><div><h2>📂 九大題材股</h2><p>分類歸分類。AI概念、半導體、AI伺服器、散熱、PCB/CCL、光通訊/網通、記憶體、金融、航運。</p></div><a class="btn" href="topics.html">進入題材分類</a></div>
-    <div class="panel home-card"><div><h2>📈 技術分析駕駛艙</h2><p>K線、MA、KD、MACD完整顯示、支撐壓力、技術判讀與操作建議。</p></div><a class="btn" href="stock.html?symbol=2330.TW">進入技術分析</a></div>
-  </div>
-
-  <div class="panel" style="margin-top:18px">
-    <h2 style="margin-top:0;color:#facc15">快速搜尋個股</h2>
-    <div class="search-block">
-      <div class="search-wrap"><input class="input" id="searchInput" placeholder="輸入代碼或名稱：2330 / 台積電 / 世芯" autocomplete="off"/><div class="search-results" id="searchResults"></div></div>
-      <button class="btn" onclick="applySearch()">分析股票</button>
-    </div>
-  </div>
-</div>
-<div class="toast" id="toast">完成</div>
-<script>
+<body><div class="app">
+<a class="btn" href="index.html">← 回首頁</a>
+<div class="topbar" style="margin-top:14px"><div><div class="title">九大題材股</div><div class="subtitle">分類只做分類｜點題材顯示全部股票</div></div><div><div class="clock" id="clock">--:--:--</div><div class="date">TOPICS MODE</div></div></div>
+<div class="panel" style="margin-top:18px"><h2 style="margin-top:0;color:#38bdf8">📂 九大題材入口</h2><div class="topic-grid" id="topicGrid"></div></div>
+<div class="panel" style="margin-top:16px"><h2 style="margin-top:0;color:#c084fc">📋 <span id="topicTitle">AI概念股</span>｜全部股票</h2><table><thead><tr><th>排名</th><th>股票</th><th>AI分數</th><th>漲跌</th><th>題材</th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div>
+</div><script>
 const seedStocks=[
 ["2330.TW","台積電","TSMC","半導體",2295,.53,93,"晶圓代工龍頭，趨勢穩定"],
 ["2454.TW","聯發科","MediaTek","半導體",1330,1.14,86,"IC設計龍頭，AI手機與邊緣AI題材"],
@@ -137,11 +122,9 @@ function qSignal(sc){return sc>=88?"強勢推薦":sc>=80?"偏多觀察":sc>=70?"
 function openStock(code){location.href=`stock.html?symbol=${encodeURIComponent(code)}`;}
 function fmt(n){return Number(n).toLocaleString(undefined,{maximumFractionDigits:2});}
 
-function showToast(msg){const t=document.querySelector(".toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1700)}
-function search(q){q=q.trim().toLowerCase();if(!q)return[];return stocks.filter(s=>s[0].toLowerCase().includes(q)||s[1].toLowerCase().includes(q)||s[2].toLowerCase().includes(q)||s[3].toLowerCase().includes(q)).slice(0,10)}
-function renderSearch(q){const box=document.getElementById("searchResults");const m=search(q);if(!q||m.length===0){box.style.display="none";box.innerHTML="";return}box.style.display="block";box.innerHTML=m.map(s=>`<div class="search-item" onclick="openStock('${s[0]}')">${s[0]}｜${s[1]}｜${s[3]}</div>`).join("")}
-function applySearch(){const m=search(document.getElementById("searchInput").value)[0];if(m)openStock(m[0]);else showToast("找不到股票")}
-document.getElementById("searchInput").addEventListener("input",e=>renderSearch(e.target.value));
-document.getElementById("searchInput").addEventListener("keydown",e=>{if(e.key==="Enter")applySearch()});
-function updateClock(){document.getElementById("clock").textContent=new Date().toLocaleTimeString("zh-TW",{hour12:false})}setInterval(updateClock,1000);updateClock();
+let topic="AI概念股";
+function renderTopics(){document.getElementById("topicGrid").innerHTML=topics.map(t=>{const arr=stocks.filter(s=>s[3]===t);const avg=arr.length?Math.round(arr.reduce((a,b)=>a+qScore(b),0)/arr.length):0;return `<div class="topic-card ${t===topic?'active':''}" onclick="selectTopic('${t}')"><div class="topic-title">${t}</div><div class="topic-sub">${arr.length} 檔股票｜點擊查看全部</div><div class="topic-score">${avg}</div></div>`}).join("")}
+function renderRows(){const rows=stocks.filter(s=>s[3]===topic).sort((a,b)=>qScore(b)-qScore(a));document.getElementById("topicTitle").textContent=topic;document.getElementById("rows").innerHTML=rows.map((s,i)=>{const sc=qScore(s),ch=s[5];return `<tr onclick="openStock('${s[0]}')"><td>${i+1}</td><td><b>${s[1]}</b><br><span style="color:#94a3b8">${s[0]}</span></td><td><span class="score-pill">${sc.toFixed(1)}</span></td><td class="${ch>=0?'green':'red'}">${ch>=0?'+':''}${ch.toFixed(2)}%</td><td>${s[3]}</td><td class="cyan">分析 →</td></tr>`}).join("")}
+window.selectTopic=t=>{topic=t;renderTopics();renderRows();}
+function updateClock(){document.getElementById("clock").textContent=new Date().toLocaleTimeString("zh-TW",{hour12:false})}setInterval(updateClock,1000);updateClock();renderTopics();renderRows();
 </script></body></html>
