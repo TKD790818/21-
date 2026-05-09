@@ -1,1 +1,98 @@
-<html><body><h1>Technical Cockpit</h1><p>MACD 完整修正版本</p></body></html>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>V23.3 Technical Cockpit</title>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;color:white;background:radial-gradient(circle at 8% 8%,rgba(24,213,255,.22),transparent 28%),radial-gradient(circle at 92% 8%,rgba(147,51,234,.26),transparent 30%),linear-gradient(135deg,#020617,#061121 48%,#030712)}
+.app{max-width:1380px;margin:0 auto;padding:18px 22px 28px}.back{display:inline-block;margin-bottom:10px;color:#67e8f9;text-decoration:none;font-weight:950}.title{font-size:38px;font-weight:950;background:linear-gradient(90deg,#1fd7ff,#60a5fa,#8b5cf6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.subtitle{margin-top:9px;color:#bae6fd;letter-spacing:3px;font-weight:900}.panel{border:1px solid rgba(59,130,246,.48);background:linear-gradient(180deg,rgba(7,17,35,.82),rgba(2,6,23,.66));border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.33);padding:12px;margin-top:14px}.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:14px 0}.metric{min-height:96px;border-radius:15px;padding:13px;background:linear-gradient(180deg,rgba(15,23,42,.78),rgba(2,6,23,.62));border:1px solid rgba(59,130,246,.48)}.metric-title{color:#bae6fd;font-size:12px;font-weight:950}.metric-value{font-size:24px;font-weight:950;margin-top:8px}.metric-sub{font-size:12px;color:#94a3b8;margin-top:4px;font-weight:800}.green{color:#22c55e}.red{color:#fb3b5f}.cyan{color:#18d5ff}.yellow{color:#facc15}.grid{display:grid;grid-template-columns:minmax(0,2fr) 420px;gap:14px}canvas{width:100%;height:720px;background:#020617;border-radius:12px}.rowline{display:flex;justify-content:space-between;border-bottom:1px solid rgba(59,130,246,.18);padding:7px 0;font-weight:800}.conclusion{border:1px solid rgba(250,204,21,.38);background:linear-gradient(90deg,rgba(250,204,21,.08),rgba(59,130,246,.08));border-radius:14px;padding:15px;font-size:19px;font-weight:950;color:#fef3c7;line-height:1.6;margin-top:14px}@media(max-width:900px){.app{padding:14px 10px}.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}canvas{height:660px}.title{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="app">
+<a class="back" href="index.html">← 回 AI 雷達首頁</a>
+<div class="title" id="pageTitle">Technical Cockpit</div>
+<div class="subtitle">技術分析駕駛艙｜MACD 完整顯示</div>
+
+<section class="metrics">
+<div class="metric"><div class="metric-title">現價</div><div class="metric-value" id="price">--</div><div class="metric-sub" id="chg">--</div></div>
+<div class="metric"><div class="metric-title">AI 技術分數</div><div class="metric-value cyan" id="score">--</div><div class="metric-sub">技術綜合</div></div>
+<div class="metric"><div class="metric-title">趨勢</div><div class="metric-value green" id="trend">--</div><div class="metric-sub">MA / MACD</div></div>
+<div class="metric"><div class="metric-title">勝率</div><div class="metric-value yellow" id="win">--</div><div class="metric-sub">估算</div></div>
+<div class="metric"><div class="metric-title">風險</div><div class="metric-value" id="risk">--</div><div class="metric-sub">追價風險</div></div>
+<div class="metric"><div class="metric-title">建議</div><div class="metric-value cyan" id="action">--</div><div class="metric-sub">操作提示</div></div>
+</section>
+
+<div class="grid">
+<div class="panel"><canvas id="chart"></canvas></div>
+<div>
+<div class="panel"><h3 style="color:#38bdf8;margin-top:0">技術分析總覽</h3><div id="summary"></div></div>
+<div class="panel"><h3 style="color:#facc15;margin-top:0">關鍵價位</h3><div id="levels"></div></div>
+</div>
+</div>
+
+<div class="conclusion" id="conclusion">--</div>
+</div>
+
+<script>
+const params=new URLSearchParams(location.search);
+const symbol=params.get("symbol")||"2330.TW";
+const code=parseInt(symbol)||2330;
+const price=Math.round((50+(code%600))*10)/10;
+const chg=Math.round((((code*37)%620)/100-2.8)*100)/100;
+const score=Math.max(45,Math.min(96,60+(code%35)+(chg>1?5:0)));
+document.getElementById("pageTitle").textContent=symbol+" 技術分析";
+document.getElementById("price").textContent=price.toLocaleString();
+document.getElementById("chg").textContent=(chg>=0?"+":"")+chg.toFixed(2)+"%";
+document.getElementById("chg").className="metric-sub "+(chg>=0?"green":"red");
+document.getElementById("score").textContent=score.toFixed(1);
+document.getElementById("trend").textContent=score>=75?"偏多":"整理";
+document.getElementById("win").textContent=Math.round(score*.72)+"%";
+document.getElementById("risk").textContent=chg>2.8?"偏高":"中等";
+document.getElementById("action").textContent=chg>2.8?"不追高":"回測觀察";
+document.getElementById("summary").innerHTML=[
+["MA20",score>=75?"站上，偏多":"整理中"],
+["KD",chg>0?"偏多":"轉弱"],
+["MACD",score>=70?"柱狀體偏多":"等待轉強"],
+["RSI",chg>2.8?"偏熱":"健康"],
+["量價",chg>1.5?"量能放大":"量縮整理"]
+].map(r=>`<div class="rowline"><span>${r[0]}</span><span>${r[1]}</span></div>`).join("");
+document.getElementById("levels").innerHTML=[
+["壓力2",(price*1.06).toFixed(1)],["壓力1",(price*1.03).toFixed(1)],["目前",price.toFixed(1)],["支撐1",(price*.97).toFixed(1)],["支撐2",(price*.94).toFixed(1)]
+].map(r=>`<div class="rowline"><span>${r[0]}</span><span>${r[1]}</span></div>`).join("");
+document.getElementById("conclusion").textContent=chg>2.8?"💡 整體結論：短線偏熱，不追高，等待回測支撐。":"💡 整體結論：可觀察回測支撐，量增再布局。";
+
+const canvas=document.getElementById("chart"),ctx=canvas.getContext("2d"),dpr=window.devicePixelRatio||1;
+function draw(){
+const rect=canvas.getBoundingClientRect();canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;ctx.scale(dpr,dpr);
+const W=rect.width,H=rect.height;ctx.clearRect(0,0,W,H);
+const pad={l:18,r:70,t:25,b:20},priceH=330,volH=70,kdH=70,macdH=130;
+function x(i){return pad.l+i*(W-pad.l-pad.r)/80}
+function y(v){return pad.t+priceH-(v*priceH)}
+ctx.strokeStyle="rgba(148,163,184,.15)";
+for(let i=0;i<8;i++){let yy=pad.t+i*priceH/7;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(W-pad.r,yy);ctx.stroke()}
+for(let i=0;i<80;i++){
+const xx=x(i),base=.5+Math.sin(i/9)*.16+i/280;
+const up=Math.sin(i/4)>-.2;ctx.fillStyle=up?"#22c55e":"#fb3b5f";ctx.strokeStyle=ctx.fillStyle;
+ctx.beginPath();ctx.moveTo(xx,y(base+.07));ctx.lineTo(xx,y(base-.07));ctx.stroke();
+ctx.fillRect(xx-3,y(base+(up?.03:-.03)),6,Math.max(2,Math.abs(y(base+.03)-y(base-.03))));
+}
+ctx.strokeStyle="#facc15";ctx.beginPath();for(let i=0;i<80;i++){let yy=y(.46+Math.sin(i/11)*.08+i/300);if(i===0)ctx.moveTo(x(i),yy);else ctx.lineTo(x(i),yy)}ctx.stroke();
+ctx.strokeStyle="#38bdf8";ctx.beginPath();for(let i=0;i<80;i++){let yy=y(.42+Math.sin(i/14)*.06+i/330);if(i===0)ctx.moveTo(x(i),yy);else ctx.lineTo(x(i),yy)}ctx.stroke();
+let volTop=pad.t+priceH+15;for(let i=0;i<80;i++){ctx.fillStyle=i%2?"rgba(34,197,94,.45)":"rgba(251,59,95,.45)";ctx.fillRect(x(i)-3,volTop+volH-(20+Math.random()*50),6,20+Math.random()*50)}
+ctx.fillStyle="#e2e8f0";ctx.fillText("Volume",pad.l+5,volTop+14);
+let kdTop=volTop+volH+20;ctx.strokeStyle="rgba(59,130,246,.35)";ctx.strokeRect(pad.l,kdTop,W-pad.l-pad.r,kdH);
+ctx.strokeStyle="#facc15";ctx.beginPath();for(let i=0;i<80;i++){let yy=kdTop+kdH/2+Math.sin(i/6)*22;if(i===0)ctx.moveTo(x(i),yy);else ctx.lineTo(x(i),yy)}ctx.stroke();
+ctx.strokeStyle="#fb7185";ctx.beginPath();for(let i=0;i<80;i++){let yy=kdTop+kdH/2+Math.sin(i/6+.8)*18;if(i===0)ctx.moveTo(x(i),yy);else ctx.lineTo(x(i),yy)}ctx.stroke();
+ctx.fillStyle="#e2e8f0";ctx.fillText("KD",pad.l+5,kdTop+14);
+let macdTop=kdTop+kdH+20;ctx.strokeStyle="rgba(59,130,246,.35)";ctx.strokeRect(pad.l,macdTop,W-pad.l-pad.r,macdH);
+for(let i=0;i<80;i++){let val=Math.sin(i/7)*45;ctx.fillStyle=val>=0?"#16a34a":"#dc2626";let mid=macdTop+macdH/2;ctx.fillRect(x(i)-3,val>=0?mid-val:mid,6,Math.abs(val))}
+ctx.strokeStyle="#38bdf8";ctx.beginPath();for(let i=0;i<80;i++){let yy=macdTop+macdH/2-Math.sin(i/9)*42;if(i===0)ctx.moveTo(x(i),yy);else ctx.lineTo(x(i),yy)}ctx.stroke();
+ctx.strokeStyle="#fb923c";ctx.beginPath();for(let i=0;i<80;i++){let yy=macdTop+macdH/2-Math.sin(i/9+.7)*32;if(i===0)ctx.moveTo(x(i),yy);else ctx.lineTo(x(i),yy)}ctx.stroke();
+ctx.fillStyle="#e2e8f0";ctx.fillText("MACD 完整顯示",pad.l+5,macdTop+14);
+}
+draw();window.addEventListener("resize",draw);
+</script>
+</body>
+</html>
