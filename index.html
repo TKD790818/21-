@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>V22 Quantum Pro Cloud 台股 AI Dashboard</title>
+<title>V22.1 Quantum Pro Cloud 台股 AI Dashboard</title>
 <style>
 :root{--bg:#020617;--cyan:#18d5ff;--blue:#2563eb;--purple:#9333ea;--pink:#ec4899;--green:#22c55e;--red:#fb3b5f;--yellow:#facc15;--text:#f8fafc;--muted:#8aa4c8}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;color:var(--text);background:radial-gradient(circle at 8% 8%,rgba(24,213,255,.24),transparent 28%),radial-gradient(circle at 92% 8%,rgba(147,51,234,.28),transparent 30%),linear-gradient(135deg,#020617,#061121 48%,#030712)}
@@ -25,7 +25,7 @@ canvas{width:100%;display:block}#chart{height:600px;background:rgba(2,6,23,.86);
 </head>
 <body>
 <div class="app"><aside class="sidebar">
-<div class="brand"><span class="bolt">⚡</span><span>V22 Console</span></div><div class="brand-sub">PRO CLOUD</div>
+<div class="brand"><span class="bolt">⚡</span><span>V22.1 Console</span></div><div class="brand-sub">PRO CLOUD</div>
 <label>股票搜尋</label><input class="input" id="searchInput" placeholder="輸入代碼或名稱：2330 / 台積電 / 廣達" />
 <label>台股分類</label><select class="select" id="category"></select>
 <label>股票 / 代碼</label><select class="select" id="stockSelect"></select>
@@ -40,7 +40,7 @@ canvas{width:100%;display:block}#chart{height:600px;background:rgba(2,6,23,.86);
 <div class="box"><div>系統狀態：<span class="ok" id="systemStatus">● V22 運作中</span></div><div class="small">股票池：<span id="poolCount">--</span> 檔台股</div><div class="small">自動掃描：<span id="autoStatus">尚未啟動</span></div><div class="small" id="lastUpdate">最後更新：--</div></div>
 </aside>
 <main class="main">
-<div class="topbar"><div><div class="title">V22 Quantum Pro Cloud</div><div class="subtitle">━━ TAIWAN AUTO SCAN AI RADAR ━━</div></div><div><div class="clock" id="clock">--:--:--</div><div class="date">UTC+8｜GITHUB PAGES CLOUD</div><div class="live"><span class="dot"></span><span id="liveText">LIVE</span></div></div></div>
+<div class="topbar"><div><div class="title">V22.1 Quantum Pro Cloud</div><div class="subtitle">━━ TAIWAN AUTO SCAN AI RADAR ━━</div></div><div><div class="clock" id="clock">--:--:--</div><div class="date">UTC+8｜GITHUB PAGES CLOUD</div><div class="live"><span class="dot"></span><span id="liveText">LIVE</span></div></div></div>
 <section class="metrics"><div class="metric"><div class="metric-title">最新價格</div><div class="metric-value" id="mPrice">--</div><div class="metric-sub" id="mPriceSub">--</div></div><div class="metric"><div class="metric-title">漲跌幅</div><div class="metric-value" id="mChange">--</div><div class="metric-sub">今日漲跌幅</div></div><div class="metric"><div class="metric-title">QUANT SCORE</div><div class="metric-value cyan" id="mScore">--</div><div class="metric-sub" id="mSignal">--</div></div><div class="metric"><div class="metric-title">分類</div><div class="metric-value purple" id="mCategory">--</div><div class="metric-sub">台股題材分類</div></div><div class="metric"><div class="metric-title">掃描排名</div><div class="metric-value yellow" id="mRank">--</div><div class="metric-sub">目前分類排名</div></div><div class="metric"><div class="metric-title">市場狀態</div><div class="metric-value">TW LIVE</div><div class="metric-sub">雲端展示 / 準即時</div></div></section>
 <section class="grid"><div class="panel"><div class="chart-head"><div><div class="chart-title" id="chartTitle">--</div><div class="small" id="ohlcText">--</div></div><div class="tabs" id="chartTabs"><button data-value="1d" class="active">1d</button><button data-value="5d">5d</button><button data-value="1m">1m</button><button data-value="3m">3m</button><button data-value="6m">6m</button><button data-value="1y">1y</button></div></div><canvas id="chart"></canvas></div>
 <div><div class="panel"><h3 style="margin-top:0;color:#38bdf8">AI TRADE SIGNAL</h3><div class="signal-flex"><div class="gauge" id="gauge"><div class="gauge-inner"><div><div class="gauge-score" id="gScore">--</div><div class="cyan" style="font-weight:900" id="gSignal">--</div></div></div></div><div><div class="small">訊號等級 <span class="badge" id="badgeSignal" style="float:right">--</span></div><br><div class="small">趨勢方向 <span class="cyan" id="trendText" style="float:right;font-weight:900">--</span></div><br><div class="small">分類題材 <span class="purple" id="themeText" style="float:right;font-weight:900">--</span></div><br><div class="small">風險等級 <span class="green" id="riskText" style="float:right;font-weight:900">--</span></div></div></div></div>
@@ -80,8 +80,37 @@ window.pickStock=(code)=>{state.symbol=code;updateAll()}
 function drawTags(){document.getElementById("categoryTags").innerHTML=Object.keys(categories).map(c=>`<span class="tag ${c===state.category?'active':''}" onclick="setCategory('${c}')">${c}</span>`).join("")}
 window.setCategory=(c)=>{catSel.value=c;state.scanned=false;fillStocks()}
 function drawSectorBars(){const bars=Object.keys(categories).map(c=>[c,Math.round(categories[c].reduce((a,b)=>a+b[6],0)/categories[c].length+(state.scanned&&c===state.category?3:0))]).sort((a,b)=>b[1]-a[1]);document.getElementById("sectorBars").innerHTML=bars.map(b=>`<div class="bar-row"><b>${b[0]}</b><div class="bar"><i style="width:${Math.min(100,b[1])}%"></i></div><span class="green">${b[1]}</span></div>`).join("")}
-function autoStep(){const arr=categories[state.category].slice().sort((a,b)=>b[6]-a[6]);const s=arr[state.autoIndex%arr.length];state.symbol=s[0];state.autoIndex++;state.scanned=true;updateAll(false);document.getElementById("autoStatus").textContent=`掃描中：${s[1]} (${s[0]})`;showToast(`自動掃描：${s[1]}`)}
-function startAuto(){stopAuto(false);state.auto=true;autoStep();state.autoTimer=setInterval(autoStep,state.speed);document.getElementById("autoStatus").textContent="自動掃描中";showToast("自動掃描已啟動")}
+function autoStep(){
+  const arr = categories[state.category].slice().sort((a,b)=>b[6]-a[6]);
+
+  if (state.autoIndex >= arr.length) {
+    stopAuto(false);
+    state.autoIndex = 0;
+    document.getElementById("autoStatus").textContent = `已完成 ${arr.length} 檔掃描`;
+    showToast(`${state.category} 掃描完成，已自動停止`);
+    return;
+  }
+
+  const s = arr[state.autoIndex];
+  state.symbol = s[0];
+  state.autoIndex++;
+  state.scanned = true;
+  updateAll(false);
+
+  document.getElementById("autoStatus").textContent =
+    `掃描中：${state.autoIndex}/${arr.length}｜${s[1]} (${s[0]})`;
+
+  showToast(`自動掃描：${s[1]}`);
+}
+function startAuto(){
+  stopAuto(false);
+  state.auto = true;
+  state.autoIndex = 0;
+  autoStep();
+  state.autoTimer = setInterval(autoStep, state.speed);
+  document.getElementById("autoStatus").textContent = "自動掃描中，掃完一輪會自動停止";
+  showToast("自動掃描已啟動，掃完一輪會自動停止");
+}
 function stopAuto(show=true){state.auto=false;if(state.autoTimer)clearInterval(state.autoTimer);state.autoTimer=null;document.getElementById("autoStatus").textContent="已停止";if(show)showToast("自動掃描已停止")}
 function updateClock(){const now=new Date();document.getElementById("clock").textContent=now.toLocaleTimeString("zh-TW",{hour12:false});document.getElementById("analyzeTime").textContent=now.toLocaleString("zh-TW");document.getElementById("lastUpdate").textContent="最後更新："+now.toLocaleString("zh-TW")}setInterval(updateClock,1000);updateClock()
 function generateData(base,chg){const len={"1d":90,"5d":120,"1m":150,"3m":170,"6m":190,"1y":220}[state.period]||150;let data=[],start=base*(state.period==="1d"?.96:state.period==="5d"?.92:.72);for(let i=0;i<len;i++){const trend=(base-start)*(i/(len-1)),wave=Math.sin(i/(state.interval==="1d"?7:4))*base*.018+(Math.random()-.5)*base*(state.interval==="1m"?.03:.018),close=Math.max(base*.35,start+trend+wave),open=i?data[i-1].c:close*(1+(Math.random()-.5)*.012),high=Math.max(open,close)*(1+Math.random()*.012),low=Math.min(open,close)*(1-Math.random()*.012),vol=Math.floor(100000+Math.random()*900000+(i%31===0?900000:0));data.push({o:open,h:high,l:low,c:close,v:vol})}data[data.length-1].c=base;return data}
